@@ -1,0 +1,47 @@
+# =====================================================
+# Secrets — NE JAMAIS COMMITER (protégé avant 1er commit)
+# =====================================================
+.secrets/
+.env
+.env.*
+.dev.vars
+.secret/
+*.pem
+*.key
+
+# Logs & traces de build
+logs/
+.logs/
+.log/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Dependency directories
+node_modules/
+
+# Cache npm local au projet (bac à sable : évite d'écrire hors du workspace)
+.npm-cache/
+
+# Build outputs
+dist/
+.astro/
+.cache/
+
+# Cloudflare Wrangler
+.wrangler/
+
+# IDE / OS
+.DS_Store
+.vscode/
+.idea/
+thumbs.db

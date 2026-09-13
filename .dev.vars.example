@@ -1,0 +1,8 @@
+# ===================================================
+# numaps.nsi.xyz - Modèle des Variables d'Environnement
+# ===================================================
+# Copiez ce fichier vers .dev.vars pour le développement local.
+# En production : `wrangler secret put NOM` — JAMAIS dans wrangler.json.
+#
+# IMPORTANT : ce projet n'a aucune authentification pour l'instant.
+# (décision reportée — voir l'échange sur un éventuel SSO avec abc.nsi.xyz)

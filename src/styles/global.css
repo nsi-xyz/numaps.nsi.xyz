@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =====================================================
+   Charte nsi.xyz — Flat Design strict (aucune ombre)
+   ===================================================== */
+
+:root {
+  --brand: #9A29D2;
+}
+
+html {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+  box-shadow: none !important;
+}
+
+body {
+  @apply bg-slate-50 text-slate-800;
+}
