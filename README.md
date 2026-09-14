@@ -9,6 +9,27 @@ Plateforme de gestion de scripts Python pour la calculatrice **NumWorks**.
 
 ---
 
+## 🎯 Périmètre actuel — phase P0
+
+> **`numaps.nsi.xyz` est pour l'instant un outil à usage personnel, mono-utilisateur.**
+
+Conséquences directes :
+
+| Sujet | Statut en P0 |
+|---|---|
+| Utilisateurs | **Un seul** (l'exploitant) |
+| Diffusion publique | ❌ Aucune |
+| Dépôt de tiers | ❌ Aucun |
+| Récupération des scripts NumWorks | **Hors numaps**, localement, par l'utilisateur |
+| Obligations liées à la diffusion au public (DSA, modération, retrait) | ⏸️ **Non déclenchées** |
+| Analyse juridique | ⏸️ **Consignée et différée** — voir `docs/architecture/` |
+| Contrainte technique principale | **Zéro Worker, zéro D1 en lecture** — voir [`cache-et-statique.md`](docs/architecture/cache-et-statique.md) |
+
+**Ce qui reste actif dès maintenant :** l'architecture technique — statique, cache, D1 en
+écriture seule, anti-spam, journal d'audit.
+
+---
+
 ## 🏛️ Stack technique
 
 Stack alignée sur `abc.nsi.xyz` pour garantir la cohérence de l'écosystème `*.nsi.xyz`.
@@ -78,3 +99,16 @@ Le dossier `.secrets/` contient les jetons d'administration locaux ; il est excl
 
 Le domaine `numaps.nsi.xyz` est raccordé au Worker via un **Custom Domain** déclaré dans
 `wrangler.json` (`routes[].custom_domain`), donc reproductible en CI.
+
+---
+
+## 📚 Documentation
+
+| Document | Contenu | Statut |
+|---|---|---|
+| [`docs/architecture/cache-et-statique.md`](docs/architecture/cache-et-statique.md) | Architecture « zéro Worker / zéro D1 » en lecture, snapshot de données, cache navigateur, invalidation, vérification | ✅ **Actif** |
+| [`docs/architecture/securite-et-conformite.md`](docs/architecture/securite-et-conformite.md) | Modèle de menaces, authentification, modèle de confiance, cadre juridique (LCEN, DSA, RGPD, droit d'auteur) | ⏸️ Différé (base pour la P3/P4) |
+| [`docs/architecture/numworks-import-et-droits.md`](docs/architecture/numworks-import-et-droits.md) | Analyse des CGU/EULA NumWorks, modes d'import, asymétrie et stratégie, import par lot | ⏸️ Différé (décisions gelées) |
+
+**Règle :** un document marqué « différé » n'a pas à être implémenté, mais il ne doit pas être
+contredit par le code. Sa réactivation est prévue **avant toute ouverture à des tiers**.
