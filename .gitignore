@@ -9,6 +9,13 @@
 *.pem
 *.key
 
+# =====================================================
+# Documents internes — NE JAMAIS PUBLIER
+# Analyse juridique, stratégie, documents de travail personnels.
+# Conservés localement, volontairement hors du dépôt public.
+# =====================================================
+docs/private/
+
 # Logs & traces de build
 logs/
 .logs/

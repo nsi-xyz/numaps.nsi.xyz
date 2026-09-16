@@ -22,7 +22,7 @@ Conséquences directes :
 | Dépôt de tiers | ❌ Aucun |
 | Récupération des scripts NumWorks | **Hors numaps**, localement, par l'utilisateur |
 | Obligations liées à la diffusion au public (DSA, modération, retrait) | ⏸️ **Non déclenchées** |
-| Analyse juridique | ⏸️ **Consignée et différée** — voir `docs/architecture/` |
+| Analyse juridique | ⏸️ **Consignée et différée** — conservée hors dépôt dans `docs/private/` |
 | Contrainte technique principale | **Zéro Worker, zéro D1 en lecture** — voir [`cache-et-statique.md`](docs/architecture/cache-et-statique.md) |
 
 **Ce qui reste actif dès maintenant :** l'architecture technique — statique, cache, D1 en
@@ -107,8 +107,11 @@ Le domaine `numaps.nsi.xyz` est raccordé au Worker via un **Custom Domain** dé
 | Document | Contenu | Statut |
 |---|---|---|
 | [`docs/architecture/cache-et-statique.md`](docs/architecture/cache-et-statique.md) | Architecture « zéro Worker / zéro D1 » en lecture, snapshot de données, cache navigateur, invalidation, vérification | ✅ **Actif** |
-| [`docs/architecture/securite-et-conformite.md`](docs/architecture/securite-et-conformite.md) | Modèle de menaces, authentification, modèle de confiance, cadre juridique (LCEN, DSA, RGPD, droit d'auteur) | ⏸️ Différé (base pour la P3/P4) |
-| [`docs/architecture/numworks-import-et-droits.md`](docs/architecture/numworks-import-et-droits.md) | Analyse des CGU/EULA NumWorks, modes d'import, asymétrie et stratégie, import par lot | ⏸️ Différé (décisions gelées) |
 
-**Règle :** un document marqué « différé » n'a pas à être implémenté, mais il ne doit pas être
-contredit par le code. Sa réactivation est prévue **avant toute ouverture à des tiers**.
+> 🔒 **Documents internes hors dépôt.** L'analyse juridique (LCEN, DSA, RGPD, droit d'auteur),
+> l'analyse des CGU NumWorks et les notes de stratégie sont conservées localement dans
+> `docs/private/`, **exclu du dépôt** (voir `.gitignore`). Elles ne sont ni publiées ni
+> versionnées ici, et seront réactivées **avant toute ouverture à des tiers**.
+
+**Règle :** ce dépôt ne contient que du code et de l'architecture technique. Aucun document
+juridique, aucune note de stratégie, aucun document de travail personnel.
