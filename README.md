@@ -1,32 +1,31 @@
-# numaps.nsi.xyz — Gestionnaire de scripts NumWorks
+# numaps — Gestionnaire de scripts NumWorks, en logiciel libre
 
-Plateforme de gestion de scripts Python pour la calculatrice **NumWorks**.
+Logiciel **libre** et **auto-hébergé** de gestion de scripts Python pour la calculatrice
+**NumWorks**. Chaque personne héberge **sa propre instance** pour gérer **ses propres scripts**.
 
-> **Hébergement :** Cloudflare Workers (SSR) + Cloudflare D1 (SQLite distribué) + KV (sessions)
-> **Dépôt GitHub :** `https://github.com/nsi-xyz/numaps.nsi.xyz` (privé)
-> **Nom de domaine :** `https://numaps.nsi.xyz`
+> **Hébergement :** Cloudflare Workers (SSR) + Cloudflare D1 (SQLite distribué) + KV
+> **Dépôt GitHub :** `https://github.com/nsi-xyz/numaps.nsi.xyz` (public)
+> **Instance de référence :** `https://numaps.nsi.xyz` — elle héberge l'annuaire public
 > **Déploiement :** automatique via GitHub Actions à chaque push sur `main`
 
 ---
 
-## 🎯 Périmètre actuel — phase P0
+## 🎯 Modèle du projet
 
-> **`numaps.nsi.xyz` est pour l'instant un outil à usage personnel, mono-utilisateur.**
-
-Conséquences directes :
-
-| Sujet | Statut en P0 |
+| Principe | Décision |
 |---|---|
-| Utilisateurs | **Un seul** (l'exploitant) |
-| Diffusion publique | ❌ Aucune |
-| Dépôt de tiers | ❌ Aucun |
-| Récupération des scripts NumWorks | **Hors numaps**, localement, par l'utilisateur |
-| Obligations liées à la diffusion au public (DSA, modération, retrait) | ⏸️ **Non déclenchées** |
-| Analyse juridique | ⏸️ **Consignée et différée** — conservée hors dépôt dans `docs/private/` |
-| Contrainte technique principale | **Zéro Worker, zéro D1 en lecture** — voir [`cache-et-statique.md`](docs/architecture/cache-et-statique.md) |
+| **Utilisateurs par instance** | **Un seul** — le propriétaire du compte Cloudflare |
+| **Contenu hébergé** | **Uniquement celui du propriétaire.** Aucun contenu de tiers. |
+| **Nature** | **Logiciel libre**, auto-hébergé, forkable |
+| **Réseau** | Annuaire d'instances + **liens optionnels et consentis** entre instances |
+| **Visiteurs** | **100 % statique** — ni Worker, ni D1 en lecture |
+| **Statut** | 🚧 **Conception. Aucun développement en cours.** |
 
-**Ce qui reste actif dès maintenant :** l'architecture technique — statique, cache, D1 en
-écriture seule, anti-spam, journal d'audit.
+Ce choix dissout l'essentiel du risque juridique : une instance mono-utilisateur n'héberge
+pas de contenu de tiers, son propriétaire est l'éditeur de son propre contenu.
+
+⚠️ **Exception à connaître :** dès qu'une instance **copie** le contenu d'une autre, elle
+redevient hébergeur de contenu de tiers. Voir `federation.md`, §6.2.
 
 ---
 
@@ -104,14 +103,16 @@ Le domaine `numaps.nsi.xyz` est raccordé au Worker via un **Custom Domain** dé
 
 ## 📚 Documentation
 
-| Document | Contenu | Statut |
-|---|---|---|
-| [`docs/architecture/cache-et-statique.md`](docs/architecture/cache-et-statique.md) | Architecture « zéro Worker / zéro D1 » en lecture, snapshot de données, cache navigateur, invalidation, vérification | ✅ **Actif** |
+| Document | Contenu |
+|---|---|
+| [`docs/architecture/federation.md`](docs/architecture/federation.md) | Modèle fédéré : vocabulaire, topologie, **niveaux de consentement**, protocole de découverte, annuaire, risques de sécurité / juridiques / organisationnels |
+| [`docs/architecture/logiciel-libre.md`](docs/architecture/logiciel-libre.md) | Licence, protocole, marque et fork, gouvernance, distribution et auto-hébergement, compatibilité, risques du libre |
+| [`docs/architecture/cache-et-statique.md`](docs/architecture/cache-et-statique.md) | Architecture « zéro Worker / zéro D1 » en lecture, snapshot de données, cache navigateur, invalidation, vérification |
 
 > 🔒 **Documents internes hors dépôt.** L'analyse juridique (LCEN, DSA, RGPD, droit d'auteur),
 > l'analyse des CGU NumWorks et les notes de stratégie sont conservées localement dans
-> `docs/private/`, **exclu du dépôt** (voir `.gitignore`). Elles ne sont ni publiées ni
-> versionnées ici, et seront réactivées **avant toute ouverture à des tiers**.
+> `docs/private/`, **exclu du dépôt** (voir `.gitignore`).
 
-**Règle :** ce dépôt ne contient que du code et de l'architecture technique. Aucun document
-juridique, aucune note de stratégie, aucun document de travail personnel.
+**Règle :** ce dépôt contient le code, l'architecture et la documentation du projet libre.
+Aucun document juridique confidentiel, aucune note de stratégie, aucun document de travail
+personnel.
