@@ -13,6 +13,9 @@ Logiciel **libre** et **auto-hébergé** de gestion de scripts Python pour la ca
 > 🤖 **Brief de développement (agents IA) :** [`BRIEF.md`](BRIEF.md) — périmètre de la première
 > maquette fonctionnelle locale, contraintes non négociables, directives techniques, charte
 > visuelle et marges de liberté. **À lire avant toute ligne de code.**
+>
+> 🤝 **Travail à plusieurs (humains ou IA) :** [`CONTRIBUTING.md`](CONTRIBUTING.md) — branches
+> courtes, rebase, fichiers « chauds », gestion des conflits.
 
 ---
 

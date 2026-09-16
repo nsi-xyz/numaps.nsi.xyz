@@ -237,6 +237,7 @@ devoir être tranché par un humain, pose la question au lieu de supposer.
 
 | Document | Ce que tu y trouveras |
 |---|---|
+| `CONTRIBUTING.md` | **Règles de collaboration et gestion des conflits — à lire si tu travailles en parallèle avec un autre intervenant** |
 | `README.md` | Vue d'ensemble du projet et ressources Cloudflare |
 | `docs/architecture/cache-et-statique.md` | Pourquoi et comment tenir « zéro Worker, zéro D1 » en lecture |
 | `docs/architecture/federation.md` | Le modèle de réseau (hors périmètre) — §6 explique les risques évités par le mono-utilisateur |
