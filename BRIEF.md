@@ -244,3 +244,8 @@ devoir être tranché par un humain, pose la question au lieu de supposer.
 | `docs/architecture/cache-et-statique.md` | Pourquoi et comment tenir « zéro Worker, zéro D1 » en lecture |
 | `docs/architecture/federation.md` | Le modèle de réseau (hors périmètre) — §6 explique les risques évités par le mono-utilisateur |
 | `docs/architecture/logiciel-libre.md` | Licence, gouvernance, distribution, **politique de dépendances** (§2.4) |
+
+> ⚠️ **`BRIEF-ELEVE.md` est sans rapport avec toi.** C'est la mission ponctuelle d'un
+> prototype **local en Node**, menée par une autre équipe, pour un premier produit jetable.
+> Les choix qui y sont décrits — pas de base de données, pas de Cloudflare, pas de dépôt —
+> sont **volontairement à l'opposé** de ce projet. **Ne t'en inspire pas.**
