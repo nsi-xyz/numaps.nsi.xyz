@@ -37,7 +37,9 @@ redevient hébergeur de contenu de tiers. Voir `federation.md`, §6.2.
 
 ## 🏛️ Stack technique
 
-Stack alignée sur `abc.nsi.xyz` pour garantir la cohérence de l'écosystème `*.nsi.xyz`.
+Stack **actuelle** du squelette, alignée sur `abc.nsi.xyz`. ⚠️ **Ce n'est qu'un point de
+départ** : la stack définitive est ouverte, sous la seule contrainte de rester déployable sur
+Cloudflare (voir [`BRIEF.md`](BRIEF.md) §3).
 
 | Couche | Technologie |
 |---|---|

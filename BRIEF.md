@@ -36,58 +36,61 @@ Ces règles ne sont pas des préférences. Les enfreindre invalide le travail.
 | 4 | **Jamais d'écrasement silencieux.** Tout conflit de nom interrompt le flux. | Idem. |
 | 5 | **Aucun identifiant NumWorks collecté, stocké ou journalisé.** | Sécurité et responsabilité. |
 | 6 | **Aucun secret dans le code ni dans `wrangler.json`.** | Le dépôt est **public**. |
-| 7 | **Dépendances sous licence permissive uniquement** (MIT, ISC, Apache-2.0, BSD, CC0). | La licence du projet dépend de celle de ses dépendances. Voir `docs/architecture/logiciel-libre.md` §2.4. |
+| 7 | **Toute dépendance non permissive doit être signalée et attribuée** — jamais intégrée en silence. | La licence du projet dépend de celle de ses dépendances. Voir `docs/architecture/logiciel-libre.md` §2.4. |
 
 ---
 
-## 3. Stack et état du dépôt
+## 3. Stack : libre, mais compatible Cloudflare
 
-La stack est **imposée** pour rester cohérente avec l'écosystème `*.nsi.xyz` :
+**Le choix technique t'appartient.** Framework, bibliothèque de composants, gestion d'état,
+outillage : décide, et justifie brièvement. Une seule contrainte : l'application doit rester
+**déployable sur Cloudflare** (Workers ou Pages), qui est l'hébergement cible du projet.
 
-| Couche | Technologie |
+### Ce qui existe déjà
+
+Le dépôt contient un squelette **Astro 5 + Hono + Tailwind + D1**, déjà déployé et fonctionnel :
+
+| Élément | Rôle |
 |---|---|
-| Rendu | **Astro 5** en `output: 'server'` |
-| Adaptateur | `@astrojs/cloudflare` |
-| API | **Hono**, monté sous `/api/*` |
-| Styles | **Tailwind CSS 3** |
-| Base | **Cloudflare D1** — binding `DB` |
-| Sessions | **Cloudflare KV** — binding `SESSION` |
-| CI/CD | GitHub Actions → `wrangler deploy` |
+| `wrangler.json` | Worker `numaps-nsi-xyz`, domaine `numaps.nsi.xyz`, bindings **D1 `DB`** et **KV `SESSION`** déjà provisionnés |
+| `src/server/app.ts` | API Hono, avec `/api/health` fonctionnel |
+| `src/pages/api/[...path].ts` | Pont Astro → Hono |
+| `.github/workflows/deploy.yml` | CI : build → migrations D1 → `wrangler deploy` → sonde post-déploiement |
+| `schema.sql` | Schéma D1, à étendre |
 
-**Le squelette existe déjà — ne le recrée pas, complète-le :**
+**Tu peux t'en servir comme point de départ, l'adapter, ou le remplacer.** Mais deux choses
+doivent rester vraies :
 
-- `wrangler.json` — bindings, domaine personnalisé, D1 et KV déjà provisionnés
-- `src/server/app.ts` — application Hono, avec `/api/health` fonctionnel
-- `src/pages/api/[...path].ts` — pont Astro → Hono
-- `src/layouts/BaseLayout.astro`, `src/pages/index.astro` — coquille minimale
-- `schema.sql` — schéma D1 à étendre
-- `src/styles/global.css`, `tailwind.config.mjs` — Tailwind et charte
+1. **Le déploiement Cloudflare doit continuer à fonctionner.** Si tu changes de framework,
+   adapte `wrangler.json` et le workflow pour que `main` reste déployable.
+2. **La base reste Cloudflare D1** (elle est provisionnée) — sauf raison forte et argumentée.
 
 ```bash
 npm install
-npm run dev          # http://localhost:4321
-npm run d1:init      # applique schema.sql sur la D1 LOCALE
+npm run dev          # selon la stack retenue
 npm run build        # doit passer sans erreur
+npm run d1:init      # applique schema.sql sur la D1 LOCALE
 ```
-
-> ⚠️ **`npm run d1:init` ne s'applique qu'en local.** N'utilise `--remote` que si
-> explicitement demandé.
 
 > ⚠️ **Un push sur `main` déploie automatiquement en production** (`numaps.nsi.xyz`).
 > Travaille sur une branche et ouvre une pull request, sauf indication contraire.
 
-### Architecture en couches attendue
+> ℹ️ `src/styles/global.css` contient pour l'instant `box-shadow: none !important` (charte
+> « flat » héritée d'un autre projet). **Retire-le** : ce projet suit Material Design (§6).
+
+### Principe d'architecture (indépendant de la stack)
+
+Quelle que soit la technologie retenue, sépare :
 
 ```
-src/core/      logique métier PURE — zéro effet de bord, testable en mémoire
-src/services/  accès I/O — D1, WebUSB, fichiers
-src/server/    API Hono — contrôleurs minces
-src/pages/     vues Astro SSR
-src/components/ composants d'interface
+logique métier PURE   nommage, conflits, validation, tags — zéro effet de bord, testable en mémoire
+accès I/O             base de données, WebUSB, fichiers
+API / contrôleurs     mince
+interface             vues et composants
 ```
 
-C'est la convention de l'écosystème : la logique métier (nommage, conflits, validation) doit
-vivre dans `src/core/` et être **testable sans navigateur ni base**.
+La logique métier — nommage Epsilon, résolution de conflits, validation — doit être **testable
+sans navigateur ni base de données**. C'est le seul point d'architecture qui compte vraiment ici.
 
 ---
 
@@ -119,11 +122,18 @@ automatiquement** (suffixe intelligent, ex. `monscript_v2`), **ignorer**.
 
 ## 5. Directives techniques fortes
 
-### 5.1 Ne réinvente pas le simulateur
+### 5.1 Réutilise le simulateur — ne le réécris pas
 
-Il existe des simulateurs web **open source** issus des projets alternatifs **Omega** et
-**Upsilon**. Récupère, intègre et adapte ce code plutôt que d'écrire un émulateur Python en
-JavaScript. Harmoniser ensuite la charte graphique du simulateur — **ce n'est pas l'urgence**.
+Les simulateurs web des projets **Omega** et **Upsilon** sont **open source et utilisables**.
+Récupère, intègre et adapte ce code : réécrire un interpréteur Python en JavaScript serait un
+travail considérable et inutile.
+
+- Les deux projets dérivent d'**Epsilon** : vérifie à quelle version de firmware correspond le
+  simulateur que tu intègres.
+- Intègre-le comme un **composant isolé** (module, *web component*, iframe) afin de pouvoir le
+  mettre à jour indépendamment du reste de l'application.
+- L'harmonisation graphique du simulateur avec Material Design viendra **plus tard** : ce n'est
+  pas l'urgence technique.
 
 ### 5.2 Ne réinvente pas WebUSB
 
@@ -138,11 +148,12 @@ Interfaces existantes à étudier : le *Workshop* officiel NumWorks (fermé, ré
 comportement), **Upsilon-Workshop** (yaya-cout), l'interface **KhiCAS** de Bernard Parisse
 (archives `.nws`), **WebDFU NumWorks** (Devan Lai / TI-Planet), **PyNumStore**.
 
-### 5.3 ⚠️ Vérifie les licences avant de copier du code
+### 5.3 Traçabilité des composants réutilisés
 
-Les simulateurs Omega/Upsilon descendent d'**Epsilon**, dont le dépôt public **ne déclare
-aucune licence standard**. Ne copie pas de code dont la licence est indéterminée sans le
-signaler. En cas de doute : **documente-le et demande**, ne tranche pas seul.
+Réutiliser du code existant est **encouragé**. Garde simplement une trace : pour chaque
+composant tiers intégré (simulateur, bibliothèque WebUSB, composant d'interface), note dans un
+fichier `THIRD-PARTY-NOTICES.md` le **projet d'origine, l'URL, la version ou le commit, et la
+licence**. C'est une bonne pratique — et une obligation de nombreuses licences.
 
 ### 5.4 Contraintes système à connaître
 
@@ -153,22 +164,26 @@ signaler. En cas de doute : **documente-le et demande**, ne tranche pas seul.
 
 ---
 
-## 6. Charte visuelle — l'essentiel
+## 6. Charte visuelle — Material Design
 
-- **Flat design strict** : aucune ombre portée (`box-shadow: none`).
-- **Violet institutionnel** `#9A29D2` comme couleur d'accent.
-- Sémantique : vert `#208F46`, ambre `#B88514`, rouge `#CF3327`.
-- **Material Symbols** pour toutes les icônes fonctionnelles.
-- **Boutons d'action icône** : format compact uniforme (36 × 36 px), icône centrée.
-- **Typographie** : Inter (texte), JetBrains Mono (code).
-- **Aucun `alert()`, `confirm()` ni `prompt()` natif** : prévoir un système de notifications
-  (toasts non bloquants) et une confirmation asynchrone.
-- En-tête sobre avec le nom du site en haut à gauche, pas de flèche retour.
-- **Accessibilité** : navigation clavier, contrastes suffisants, libellés explicites.
+**Référence : Material Design 3.** C'est la charte de **ce** projet — et non la charte « flat »
+héritée d'un autre site de l'écosystème.
 
-L'échelle typographique Tailwind de l'écosystème est volontairement plus grande que celle par
-défaut (`xs` = 14 px, `sm` = 16 px, `base` = 18 px). À reprendre pour l'homogénéité — ou à
-justifier autrement si tu fais un autre choix.
+| Élément | Attendu |
+|---|---|
+| Système | **Material Design 3** : rôles de couleur, élévation, états, formes, typographie |
+| Couleur de marque | **Violet `#9A29D2`** — à utiliser comme *seed color* ou couleur primaire |
+| Icônes | **Material Symbols** |
+| Composants | Privilégie les composants Material standards : boutons, cartes, barres, menus, *snackbars*, dialogues |
+| Élévation et ombres | **Autorisées** — contrairement à la charte flat d'un autre projet |
+| Notifications | **Aucun `alert()`, `confirm()` ni `prompt()` natif** : *snackbars* et dialogues Material |
+| Thème sombre | À prévoir si le coût est faible, sinon hors périmètre |
+| Accessibilité | Navigation clavier, contrastes conformes, libellés explicites, cibles tactiles suffisantes |
+| Langue | Français |
+
+Tu choisis librement ta bibliothèque de composants et ta manière d'implémenter Material —
+l'important est que le résultat **se lise comme du Material Design**, pas comme un thème
+approximatif.
 
 ---
 
@@ -181,7 +196,7 @@ justifier autrement si tu fais un autre choix.
 | Collecter, transmettre ou journaliser des identifiants NumWorks | Risque majeur, interdit par conception |
 | Héberger ou afficher le contenu d'un tiers | Fait basculer l'instance en hébergeur |
 | Écrire un secret dans le code ou `wrangler.json` | Le dépôt est public |
-| Ajouter une dépendance copyleft forte ou non commerciale | Ferme le choix de licence du projet |
+| Intégrer une dépendance sans noter sa licence ni son attribution | Traçabilité et respect des licences |
 | Recoder un émulateur ou la couche WebUSB depuis zéro | Travail déjà fait par la communauté |
 | Faire une requête D1 pour un visiteur non authentifié | Contrainte de coût |
 
@@ -189,12 +204,12 @@ justifier autrement si tu fais un autre choix.
 
 ## 8. Définition de « terminé » pour cette maquette
 
-- [ ] `npm run dev` démarre, l'application est utilisable en local.
+- [ ] L'application **démarre en local** par la commande documentée dans le README, et est utilisable.
 - [ ] La D1 **locale** est initialisée par `schema.sql` et le CRUD fonctionne.
 - [ ] Le nommage Epsilon est validé **côté cœur métier**, avec tests.
 - [ ] La résolution de conflits propose les trois choix, sans écrasement silencieux.
 - [ ] Les filtres par tags sont reflétés dans l'URL et survivent au rechargement.
-- [ ] `npm run build` passe sans erreur.
+- [ ] Le **build passe sans erreur** et le déploiement Cloudflare reste fonctionnel.
 - [ ] Aucun secret, aucun identifiant NumWorks, aucune donnée de tiers dans le code.
 - [ ] Une note courte indique ce qui est fonctionnel, ce qui est simulé, ce qui reste à faire.
 
@@ -204,6 +219,8 @@ justifier autrement si tu fais un autre choix.
 
 Tout ce qui n'est pas listé en §2 et §7 est **ton choix** :
 
+- **la stack technique** : framework, bibliothèque de composants, gestion d'état, outillage —
+  à condition de rester **déployable sur Cloudflare** (§3) ;
 - la mise en page exacte, les composants, les transitions, le ton des libellés ;
 - le choix de l'éditeur (CodeMirror, Monaco, ou autre) ;
 - la stratégie de simulation et le degré de fidélité atteint dans cette première étape ;
