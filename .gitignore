@@ -16,6 +16,11 @@
 # =====================================================
 docs/private/
 
+# Sauvegardes locales de la base
+/backups/
+*.sql.enc
+d1-*.sql
+
 # Logs & traces de build
 logs/
 .logs/

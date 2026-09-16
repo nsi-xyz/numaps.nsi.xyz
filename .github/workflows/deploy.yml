@@ -1,9 +1,21 @@
 name: Déploiement Cloudflare
 
+# ⚠️ DÉPLOIEMENT MANUEL UNIQUEMENT.
+#
+# Un push sur `main` ne met RIEN en ligne. C'est volontaire : les agents IA peuvent
+# travailler et pousser sans aucun risque pour la production.
+#
+# Pour déployer : onglet « Actions » → « Déploiement Cloudflare » → « Run workflow ».
+#
+# Ce workflow : build → sauvegarde de la base → migrations D1 → déploiement → sonde.
+
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      allow_destructive:
+        description: "Autoriser les ordres SQL destructeurs (DROP / DELETE / TRUNCATE) dans schema.sql"
+        type: boolean
+        default: false
 
 # Un seul déploiement à la fois ; on ne coupe pas un déploiement en cours.
 concurrency:
@@ -14,7 +26,11 @@ jobs:
   deploy:
     name: Build & Deploy (Worker + D1)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
+
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
     steps:
       - name: Récupération du dépôt
@@ -32,17 +48,52 @@ jobs:
       - name: Compilation du site
         run: npm run build
 
+      # ------------------------------------------------------------------
+      # Garde-fou : une migration destructive ne doit jamais passer inaperçue.
+      # ------------------------------------------------------------------
+      - name: Garde-fou — ordres SQL destructeurs
+        run: |
+          set -euo pipefail
+          if grep -nEi '^[[:space:]]*(DROP|TRUNCATE|DELETE[[:space:]]+FROM)' schema.sql; then
+            if [ "${{ inputs.allow_destructive }}" != "true" ]; then
+              echo "::error::schema.sql contient un ordre destructeur. Si c'est intentionnel, relance le workflow en cochant « allow_destructive »."
+              exit 1
+            fi
+            echo "::warning::Ordre destructeur explicitement autorisé."
+          else
+            echo "Aucun ordre destructeur détecté."
+          fi
+
+      # ------------------------------------------------------------------
+      # Sauvegarde AVANT migration : c'est le moment où elle est utile.
+      # Chiffrée, car les artefacts d'un dépôt public sont téléchargeables.
+      # ------------------------------------------------------------------
+      - name: Sauvegarde de la base avant migration
+        run: |
+          set -euo pipefail
+          npx wrangler d1 export numaps-nsi-xyz --remote --output="$RUNNER_TEMP/d1-before-deploy.sql"
+          test -s "$RUNNER_TEMP/d1-before-deploy.sql"
+          openssl enc -aes-256-cbc -pbkdf2 -salt \
+            -in "$RUNNER_TEMP/d1-before-deploy.sql" \
+            -out "$RUNNER_TEMP/d1-before-deploy.sql.enc" \
+            -pass env:BACKUP_PASSPHRASE
+          rm -f "$RUNNER_TEMP/d1-before-deploy.sql"
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+
+      - name: Archiver la sauvegarde chiffrée
+        uses: actions/upload-artifact@v4
+        with:
+          name: d1-avant-deploiement-${{ github.run_number }}
+          path: ${{ runner.temp }}/d1-before-deploy.sql.enc
+          retention-days: 30
+          if-no-files-found: error
+
       - name: Application des migrations D1
         run: npx wrangler d1 execute numaps-nsi-xyz --remote --file=schema.sql
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Déploiement du Worker
         run: npx wrangler deploy
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Sonde post-déploiement
         run: |

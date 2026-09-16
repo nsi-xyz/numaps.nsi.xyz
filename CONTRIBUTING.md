@@ -32,8 +32,10 @@ git push -u origin feat/ma-tache
    L'historique reste linéaire et un conflit se résout **une fois**, pas à chaque merge.
 4. **Un commit = une intention.** Messages conventionnels : `feat(scope): …`, `fix(scope): …`,
    `docs(scope): …`, `chore(scope): …`.
-5. ⚠️ **`main` déploie automatiquement en production** (`numaps.nsi.xyz`). Ce qui arrive sur
-   `main` est en ligne.
+5. ℹ️ **Le déploiement est manuel** : pousser sur `main` ne met **rien** en ligne. Le
+   propriétaire déclenche le déploiement depuis l'onglet *Actions* quand il le décide. La
+   branche et la pull request servent donc à **limiter les conflits**, pas à protéger la
+   production — mais elles restent la bonne pratique.
 
 ---
 

@@ -6,7 +6,8 @@ Logiciel **libre** et **auto-hébergé** de gestion de scripts Python pour la ca
 > **Hébergement :** Cloudflare Workers (SSR) + Cloudflare D1 (SQLite distribué) + KV
 > **Dépôt GitHub :** `https://github.com/nsi-xyz/numaps.nsi.xyz` (public)
 > **Instance de référence :** `https://numaps.nsi.xyz` — elle héberge l'annuaire public
-> **Déploiement :** automatique via GitHub Actions à chaque push sur `main`
+> **Déploiement :** **manuel**, déclenché depuis l'onglet *Actions* (`workflow_dispatch`).
+> Un push sur `main` ne met **rien** en ligne.
 
 ---
 
@@ -109,6 +110,47 @@ Le dossier `.secrets/` contient les jetons d'administration locaux ; il est excl
 
 Le domaine `numaps.nsi.xyz` est raccordé au Worker via un **Custom Domain** déclaré dans
 `wrangler.json` (`routes[].custom_domain`), donc reproductible en CI.
+
+---
+
+## 🚀 Déploiement et sauvegardes
+
+### Déploiement — manuel
+
+Le déploiement est **volontairement manuel** : pousser sur `main` ne met **rien** en ligne.
+Cela permet de travailler à plusieurs (humains ou agents IA) sans risque pour la production.
+
+> **Actions** → *Déploiement Cloudflare* → **Run workflow**
+
+Le workflow enchaîne : build → **sauvegarde de la base** → migrations D1 → déploiement →
+sonde de vérification. Une migration contenant `DROP`, `DELETE` ou `TRUNCATE` **fait échouer
+le déploiement**, sauf si l'entrée `allow_destructive` est cochée explicitement.
+
+### Sauvegarde de la base
+
+| Mécanisme | Fréquence | Rétention |
+|---|---|---|
+| `Sauvegarde D1` (workflow planifié) | quotidienne, 03:17 UTC | 90 jours |
+| Sauvegarde avant déploiement | à chaque déploiement | 30 jours |
+| **D1 Time Travel** (Cloudflare) | continu | fenêtre limitée |
+
+⚠️ **Le dépôt est public : les artefacts GitHub Actions sont téléchargeables par n'importe
+qui.** Les sauvegardes sont donc **toujours chiffrées** (AES-256) avec le secret
+`BACKUP_PASSPHRASE` avant d'être archivées.
+
+**Restaurer :**
+
+```bash
+openssl enc -d -aes-256-cbc -pbkdf2 \
+  -in d1-backup.sql.enc -out d1-backup.sql \
+  -pass env:BACKUP_PASSPHRASE
+
+npx wrangler d1 execute numaps-nsi-xyz --remote --file=d1-backup.sql
+```
+
+> 🔑 Sans la passphrase, une sauvegarde est **définitivement illisible**. Elle est conservée
+> dans `.secrets/env` (local, gitignoré) et dans les secrets GitHub : **duplique-la dans un
+> gestionnaire de mots de passe.**
 
 ---
 

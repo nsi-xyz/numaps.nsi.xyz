@@ -72,8 +72,10 @@ npm run build        # doit passer sans erreur
 npm run d1:init      # applique schema.sql sur la D1 LOCALE
 ```
 
-> ⚠️ **Un push sur `main` déploie automatiquement en production** (`numaps.nsi.xyz`).
-> Travaille sur une branche et ouvre une pull request, sauf indication contraire.
+> ℹ️ **Le déploiement est manuel.** Un push sur `main` ne met **rien** en ligne : le
+> propriétaire déclenche le déploiement à la demande depuis l'onglet *Actions*. Tu peux donc
+> pousser **sans aucun risque pour la production**. Travaille malgré tout sur une branche,
+> pour limiter les conflits (voir `CONTRIBUTING.md`).
 
 > ℹ️ `src/styles/global.css` contient pour l'instant `box-shadow: none !important` (charte
 > « flat » héritée d'un autre projet). **Retire-le** : ce projet suit Material Design (§6).
