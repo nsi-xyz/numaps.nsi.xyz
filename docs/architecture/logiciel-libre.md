@@ -1,6 +1,6 @@
 # Projet libre — licence, gouvernance, distribution
 
-> **Version :** 1.0
+> **Version :** 1.1
 > **Statut :** document de référence. **Aucune implémentation.**
 > **Objet :** traiter le projet comme un **logiciel libre** et non comme un site : licence,
 > gouvernance, marque, distribution, compatibilité, et risques propres au libre.
@@ -68,6 +68,76 @@ précaution. Pour un projet éducatif auto-hébergé, ce n'est pas un obstacle r
 
 > Un protocole fermé rendrait la fédération factice : il n'y aurait qu'un seul
 > implémenteur. **Le protocole doit être un standard, pas un artefact du logiciel.**
+
+---
+
+### 2.4 ⚠️ La contrainte vient des dépendances, pas de l'intention
+
+**Principe :** la licence du projet est **bornée** par les licences de ses dépendances. On ne
+choisit pas sa licence puis ses bibliothèques : on choisit ses bibliothèques, **puis** on
+découvre quelle licence est encore possible.
+
+Conséquence pratique : **la décision de licence peut être reportée, mais la politique de
+dépendances doit être fixée maintenant.** Intégrer aujourd'hui une bibliothèque sous
+GPL-2.0-only fermerait définitivement la porte à l'AGPL-3.0 — et le découvrir trop tard
+obligerait à tout retirer.
+
+#### Règle de tri
+
+| Catégorie | Licences | Effet sur le choix du projet |
+|---|---|---|
+| ✅ **Sûres** | MIT, ISC, BSD-2/3-Clause, Apache-2.0, CC0, Unlicense, BlueOak | **Toutes** les options restent ouvertes |
+| 🟡 **Compatibles sous conditions** | LGPL-3.0, GPL-3.0, MPL-2.0 | Compatibles avec AGPL-3.0 ; imposent des obligations (source, relinkage) |
+| 🔴 **Rédhibitoires** | GPL-2.0-only, SSPL, BUSL, Commons Clause, **CC BY-NC-\***, tout « non commercial », propriétaire, licence absente | **Détruisent l'option AGPL** — et une licence non commerciale **détruit le projet libre lui-même** |
+
+**Règle par défaut : n'intégrer que la première catégorie.** Toute dépendance copyleft est
+un choix conscient, inventorié et validé **avant** intégration.
+
+#### Inventaire réel (vérifié sur l'installation courante)
+
+Sur **426 paquets** :
+
+| Licence | Paquets |
+|---|---|
+| MIT | 356 |
+| ISC | 20 |
+| Apache-2.0 | 15 |
+| BSD-2-Clause | 10 |
+| MIT OR Apache-2.0 | 7 |
+| BSD-3-Clause | 4 |
+| CC0-1.0 | 3 |
+| Unlicense | 3 |
+| BlueOak-1.0.0 | 2 |
+| LGPL-3.0-or-later | 2 (famille `sharp-libvips`) |
+| Python-2.0 | 1 |
+| CC-BY-4.0 | 1 (`caniuse-lite` — des **données**, pas du code) |
+| **non déclarée** | 1 (`zod-to-ts`) |
+
+> ✅ **Conclusion : toutes les options de licence restent ouvertes.**
+
+#### Trois distinctions qui changent tout
+
+1. **Code distribué ≠ code de développement.** Seul le code **effectivement embarqué** dans
+   le bundle du Worker compte pour la licence du produit distribué. Les outils de build
+   (`typescript` Apache-2.0, `wrangler` MIT/Apache-2.0) et les binaires natifs
+   (`sharp-libvips`, LGPL-3.0, utilisés côté build) **ne sont pas embarqués**.
+   → Cette vérification est à **refaire à chaque ajout de dépendance**, pas une fois pour toutes.
+2. **Obligations d'attribution.** Apache-2.0 et CC-BY-4.0 imposent de **conserver les
+   mentions**. Il faut donc un **`THIRD-PARTY-NOTICES.md`** généré depuis les dépendances de
+   production. Ce n'est pas une politesse : c'est une **condition** de ces licences.
+3. **Licence absente = risque.** Un paquet sans licence déclarée (`zod-to-ts`) n'est pas
+   « libre de droits » : par défaut, **tous droits réservés**. À vérifier avant toute
+   distribution.
+
+#### Points de vigilance pour la suite
+
+| Sujet | Attention |
+|---|---|
+| **WebUSB** | Une bibliothèque tierce sera peut-être nécessaire → vérifier sa licence **avant** intégration |
+| **Modules NumWorks** | Ne jamais intégrer de code issu de NumWorks (licence non établie) |
+| **Polices** | Inter, JetBrains Mono : licence OFL → à inclure dans les notices |
+| **Icônes** | Material Symbols : Apache-2.0 → attribution obligatoire |
+| **Composants copiés** | Tout code repris d'un autre projet doit être inventorié |
 
 ---
 
@@ -229,15 +299,22 @@ Politique à écrire :
 
 ## 8. Décisions ouvertes
 
-1. **Licence du code** : AGPL-3.0 ou EUPL-1.2 ?
-2. **Licence du protocole** : CC0, MIT, ou autre ?
-3. **Nom du projet** : conserver « numaps » (avec mention de non-affiliation) ou choisir un
+1. **Licence du code** : ⏸️ **reportée** — elle dépendra des outils et bibliothèques
+   effectivement intégrés (voir §2.4). La **politique de dépendances**, elle, s'applique
+   **dès maintenant** : toute dépendance hors catégorie « sûre » doit être validée avant
+   intégration.
+2. **`THIRD-PARTY-NOTICES.md`** : à générer automatiquement depuis les dépendances de
+   production — condition des licences Apache-2.0 et CC-BY-4.0.
+3. **`zod-to-ts`** : paquet sans licence déclarée. À vérifier ou à écarter avant toute
+   distribution.
+4. **Licence du protocole** : CC0, MIT, ou autre ?
+5. **Nom du projet** : conserver « numaps » (avec mention de non-affiliation) ou choisir un
    nom distinct ?
-4. **Politique de marque** : qui peut utiliser le nom, et sous quelles conditions ?
-5. **Gouvernance** : qui tranche ? Qui contrôle domaine et annuaire ? Critères d'admission
+6. **Politique de marque** : qui peut utiliser le nom, et sous quelles conditions ?
+7. **Gouvernance** : qui tranche ? Qui contrôle domaine et annuaire ? Critères d'admission
    d'un mainteneur ?
-6. **DCO** : confirmé ?
-7. **Distribution** : dépôt modèle, bouton de déploiement, ou les deux ?
-8. **Portabilité** : reste-t-on volontairement lié à Cloudflare, ou prépare-t-on une
-   abstraction (D1 → SQL générique) dès la conception ?
-9. **Politique de compatibilité** : quelle tolérance de version ?
+8. **DCO** : confirmé ?
+9. **Distribution** : dépôt modèle, bouton de déploiement, ou les deux ?
+10. **Portabilité** : reste-t-on volontairement lié à Cloudflare, ou prépare-t-on une
+    abstraction (D1 → SQL générique) dès la conception ?
+11. **Politique de compatibilité** : quelle tolérance de version ?
